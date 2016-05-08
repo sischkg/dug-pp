@@ -10,6 +10,12 @@
 
 typedef std::vector<uint8_t> PacketData;
 
+struct ClientParameters {
+    std::string address;
+    uint16_t    port;
+};
+
+
 /*!
  * IPアドレスのテキスト形式をバイナリ形式(in_addr)へ変換できない場合にthrowする例外
  */
@@ -53,10 +59,10 @@ public:
 
 std::string get_error_message( const std::string &msg, int error_number );
 
-uint16_t compute_checksum( const uint8_t *data, size_t length );
 
-in_addr convert_address_string_to_binary( const std::string &str ) throw( InvalidAddressFormatError );
-std::string convert_address_binary_to_string( in_addr bin ) throw( InvalidAddressFormatError );
+in_addr convertAddressStringToBinary( const std::string &str );
+std::string convertAddressBinaryToString( in_addr bin );
+
 
 char *encode_to_base64( const uint8_t *begin, const uint8_t *end, char *output );
 void encode_to_base64( const std::vector<uint8_t> &, std::string & );
@@ -71,5 +77,7 @@ uint32_t decode_from_base64_size( const char *begin, const char *end );
 void md5( const uint8_t *d, uint32_t size, uint8_t result[ 16 ] );
 
 std::string printPacketData( const PacketData &p );
+
+
 
 #endif

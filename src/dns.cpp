@@ -21,7 +21,7 @@
 
 namespace dns
 {
-    void generate_dns_packet( const MessageInfo &info, WireFormat &message )
+    void generateDNSMessage( const MessageInfo &info, WireFormat &message )
     {
         PacketHeaderField header;
         header.id                   = htons( info.id );
@@ -64,7 +64,7 @@ namespace dns
         }
     }
 
-    MessageInfo parse_dns_packet( const uint8_t *begin, const uint8_t *end )
+    MessageInfo parseDNSMessage( const uint8_t *begin, const uint8_t *end )
     {
         const uint8_t *packet = begin;
 

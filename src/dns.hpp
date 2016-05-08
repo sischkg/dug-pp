@@ -62,8 +62,8 @@ namespace dns
         }
     };
 
-    void generate_dns_packet( const MessageInfo &query, WireFormat & );
-    MessageInfo parse_dns_packet( const uint8_t *begin, const uint8_t *end );
+    void generateDNSMessage( const MessageInfo &message, WireFormat & );
+    MessageInfo parseDNSMessage( const uint8_t *begin, const uint8_t *end );
     std::ostream &operator<<( std::ostream &os, const MessageInfo &packet_info );
     std::ostream &print_header( std::ostream &os, const MessageInfo &packet );
     std::string type_code_to_string( Type t );
