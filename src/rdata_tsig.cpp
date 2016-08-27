@@ -205,7 +205,7 @@ namespace dns
         header->additional_infomation_count = htons( adcount );
 
 	WireFormat tsig_wireformat;
-	generate_response_section( entry, tsig_wireformat );
+	generateResponseSection( entry, tsig_wireformat );
         PacketData tsig_packet = tsig_wireformat.get();
  
         packet.insert( packet.end(), tsig_packet.begin(), tsig_packet.end() );
@@ -219,8 +219,8 @@ namespace dns
         PacketData hash_data = message.get();
 
         PacketHeaderField *header = reinterpret_cast<PacketHeaderField *>( &hash_data[ 0 ] );
-        header->id                = htons( tsig_info.original_id );
-        uint16_t adcount          = ntohs( header->additional_infomation_count );
+        header->id       = htons( tsig_info.original_id );
+        uint16_t adcount = ntohs( header->additional_infomation_count );
         if ( adcount < 1 ) {
             throw FormatError( "adcount of message with TSIG record must not be 0" );
         }
@@ -231,20 +231,20 @@ namespace dns
 
         // skip question section
         for ( uint16_t i = 0; i < packet_info.question_section.size(); i++ )
-            pos = parse_question_section( &hash_data[ 0 ], pos ).second;
+            pos = parseQuestionSection( &hash_data[ 0 ], pos ).second;
 
         // skip answer section
         for ( uint16_t i = 0; i < packet_info.answer_section.size(); i++ )
-            pos = parse_response_section( &hash_data[ 0 ], pos ).second;
+            pos = parseResponseSection( &hash_data[ 0 ], pos ).second;
 
         // skip authority section
         for ( uint16_t i = 0; i < packet_info.authority_section.size(); i++ )
-            pos = parse_response_section( &hash_data[ 0 ], pos ).second;
+            pos = parseResponseSection( &hash_data[ 0 ], pos ).second;
 
         // skip non TSIG Record in additional section
         bool is_found_tsig = false;
         for ( uint16_t i = 0; i < packet_info.additional_infomation_section.size(); i++ ) {
-            ResponseSectionEntryPair parsed_rr_pair = parse_response_section( &hash_data[ 0 ], pos );
+            ResponseSectionEntryPair parsed_rr_pair = parseResponseSection( &hash_data[ 0 ], pos );
             if ( parsed_rr_pair.first.type == TYPE_TSIG ) {
                 is_found_tsig = true;
                 break;

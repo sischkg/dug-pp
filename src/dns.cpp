@@ -38,30 +38,31 @@ namespace dns
 
         std::vector<ResponseSectionEntry> additional = info.additional_infomation_section;
 
-        if ( info.edns0 ) {
-            additional.push_back( generate_opt_pseudo_record( info.opt_pseudo_rr ) );
-        }
-
+	uint16_t additional_count = info.additional_infomation_section.size();
+	if ( info.edns0 )
+	    additional_count++;
+	
         header.question_count              = htons( info.question_section.size() );
         header.answer_count                = htons( info.answer_section.size() );
         header.authority_count             = htons( info.authority_section.size() );
-        header.additional_infomation_count = htons( additional.size() );
+        header.additional_infomation_count = htons( additional_count );
 
         message.pushBuffer( reinterpret_cast<const uint8_t *>( &header ),
                             reinterpret_cast<const uint8_t *>( &header ) + sizeof( header ) );
 
         for ( auto q = info.question_section.begin(); q != info.question_section.end(); ++q ) {
-            generate_question_section( *q, message );
+            generateQuestionSection( *q, message );
         }
         for ( auto q = info.answer_section.begin(); q != info.answer_section.end(); ++q ) {
-            generate_response_section( *q, message );
+            generateResponseSection( *q, message );
         }
         for ( auto q = info.authority_section.begin(); q != info.authority_section.end(); ++q ) {
-            generate_response_section( *q, message );
+            generateResponseSection( *q, message );
         }
         for ( auto q = additional.begin(); q != additional.end(); ++q ) {
-            generate_response_section( *q, message );
+            generateResponseSection( *q, message );
         }
+	info.opt_pseudo_rr.outputWireFormat( message );
     }
 
     MessageInfo parseDNSMessage( const uint8_t *begin, const uint8_t *end )
@@ -89,22 +90,22 @@ namespace dns
 
         packet += sizeof( PacketHeaderField );
         for ( int i = 0; i < question_count; i++ ) {
-            QuestionSectionEntryPair pair = parse_question_section( begin, packet );
+            QuestionSectionEntryPair pair = parseQuestionSection( begin, packet );
             packet_info.question_section.push_back( pair.first );
             packet = pair.second;
         }
         for ( int i = 0; i < answer_count; i++ ) {
-            ResponseSectionEntryPair pair = parse_response_section( begin, packet );
+            ResponseSectionEntryPair pair = parseResponseSection( begin, packet );
             packet_info.answer_section.push_back( pair.first );
             packet = pair.second;
         }
         for ( int i = 0; i < authority_count; i++ ) {
-            ResponseSectionEntryPair pair = parse_response_section( begin, packet );
+            ResponseSectionEntryPair pair = parseResponseSection( begin, packet );
             packet_info.authority_section.push_back( pair.first );
             packet = pair.second;
         }
         for ( int i = 0; i < additional_infomation_count; i++ ) {
-            ResponseSectionEntryPair pair = parse_response_section( begin, packet );
+            ResponseSectionEntryPair pair = parseResponseSection( begin, packet );
             if ( pair.first.type == TYPE_OPT ) {
                 packet_info.edns0 = true;
             }
@@ -120,14 +121,14 @@ namespace dns
     }
 
 
-    void generate_question_section( const QuestionSectionEntry &question, WireFormat &message )
+    void generateQuestionSection( const QuestionSectionEntry &question, WireFormat &message )
     {
         question.domainname.outputWireFormat( message );
         message.pushUInt16HtoN( question.type );
         message.pushUInt16HtoN( question.klass );
     }
 
-    QuestionSectionEntryPair parse_question_section( const uint8_t *packet, const uint8_t *p )
+    QuestionSectionEntryPair parseQuestionSection( const uint8_t *packet, const uint8_t *p )
     {
         QuestionSectionEntry question;
         const uint8_t *      pos = Domainname::parsePacket( question.domainname, packet, p );
@@ -138,7 +139,7 @@ namespace dns
         return QuestionSectionEntryPair( question, pos );
     }
 
-    void generate_response_section( const ResponseSectionEntry &response, WireFormat &message )
+    void generateResponseSection( const ResponseSectionEntry &response, WireFormat &message )
     {
         response.domainname.outputWireFormat( message  );
         message.pushUInt16HtoN( response.type );
@@ -152,7 +153,7 @@ namespace dns
         }
     }
 
-    ResponseSectionEntryPair parse_response_section( const uint8_t *packet, const uint8_t *begin )
+    ResponseSectionEntryPair parseResponseSection( const uint8_t *packet, const uint8_t *begin )
     {
         ResponseSectionEntry sec;
 
@@ -211,7 +212,7 @@ namespace dns
         return ResponseSectionEntryPair( sec, pos );
     }
 
-    std::ostream &print_header( std::ostream &os, const MessageInfo &packet )
+    std::ostream &printHader( std::ostream &os, const MessageInfo &packet )
     {
         os << "ID:                   " << packet.id                   << std::endl
            << "Query/Response:       " << ( packet.query_response == 0 ? "Query" : "Response" ) << std::endl
@@ -221,12 +222,12 @@ namespace dns
            << "Recursion Desired:    " << packet.recursion_desired    << std::endl
            << "Recursion Available:  " << packet.recursion_available  << std::endl
            << "Checking Disabled:    " << packet.checking_disabled    << std::endl
-           << "Response Code:        " << response_code_to_string( packet.response_code ) << std::endl;
+           << "Response Code:        " << ResponseCodeToString( packet.response_code ) << std::endl;
 
         return os;
     }
 
-    std::string type_code_to_string( Type t )
+    std::string TypeCodeToString( Type t )
     {
         std::string res;
 
@@ -288,7 +289,7 @@ namespace dns
         return res;
     }
 
-    std::string response_code_to_string( uint8_t rcode )
+    std::string ResponseCodeToString( uint8_t rcode )
     {
         std::string res;
 

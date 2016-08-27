@@ -170,4 +170,14 @@ namespace dns
             throw FormatError( "invalid family of EDNS-Client-Subet" );
         }
     }
+
+
+    void OptPseudoRecord::outputWireFormat( WireFormat &message ) const
+    {
+	message.pushUInt8( 0 );  // owner == "."
+	message.pushUInt16HtoN( dns::TYPE_OPT );
+	message.pushUInt16HtoN( payload_size );
+	message.pushUInt32HtoN( static_cast<uint32_t>( rcode ) << 24 );
+	record_options_data->outputWireFormat( message );
+    }
 }

@@ -128,15 +128,20 @@ namespace dns
     };
 
     struct OptPseudoRecord {
-        Domainname                      domainname;
-        uint16_t                        payload_size;
-        uint8_t                         rcode;
+        uint16_t                 payload_size;
+        uint8_t                  rcode;
         boost::shared_ptr<RData> record_options_data;
-        uint32_t                        offset;
-
-        OptPseudoRecord() : domainname( "." ), payload_size( 1280 ), rcode( 0 ), offset( NO_COMPRESSION )
+	
+        OptPseudoRecord( uint16_t size = 0,
+			 uint8_t  code = 0,
+			 boost::shared_ptr<RData> rdata = boost::shared_ptr<RData>() )
+	    : payload_size( size ),
+	      rcode( code ),
+	      record_options_data( rdata )
         {
         }
+
+	void outputWireFormat( WireFormat & ) const;
     };
 }
 

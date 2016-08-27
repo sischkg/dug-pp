@@ -21,7 +21,6 @@ namespace dns
 
     struct ResponseSectionEntry {
         Domainname domainname;
-        uint16_t   owner = 0;
         uint16_t   type  = 0;
         uint16_t   klass = 0;
         uint32_t   ttl   = 0;
@@ -65,20 +64,18 @@ namespace dns
     void generateDNSMessage( const MessageInfo &message, WireFormat & );
     MessageInfo parseDNSMessage( const uint8_t *begin, const uint8_t *end );
     std::ostream &operator<<( std::ostream &os, const MessageInfo &packet_info );
-    std::ostream &print_header( std::ostream &os, const MessageInfo &packet );
-    std::string type_code_to_string( Type t );
-    std::string response_code_to_string( uint8_t rcode );
+    std::ostream &printHeader( std::ostream &os, const MessageInfo &packet );
+    std::string TypeCodeTiString( Type t );
+    std::string ResponseCodeToString( uint8_t rcode );
 
-    void generate_question_section( const QuestionSectionEntry &q, WireFormat &message );
-    void generate_response_section( const ResponseSectionEntry &r, WireFormat &message );
+    void generateQuestionSection( const QuestionSectionEntry &q, WireFormat &message );
+    void generateResponseSection( const ResponseSectionEntry &r, WireFormat &message );
 
     typedef std::pair<QuestionSectionEntry, const uint8_t *> QuestionSectionEntryPair;
     typedef std::pair<ResponseSectionEntry, const uint8_t *> ResponseSectionEntryPair;
-    QuestionSectionEntryPair parse_question_section( const uint8_t *packet, const uint8_t *section );
-    ResponseSectionEntryPair parse_response_section( const uint8_t *packet, const uint8_t *section );
+    QuestionSectionEntryPair parseQuestionSection( const uint8_t *packet, const uint8_t *section );
+    ResponseSectionEntryPair parseResponseSection( const uint8_t *packet, const uint8_t *section );
 
-    ResponseSectionEntry generate_opt_pseudo_record( const OptPseudoRecord & );
-    OptPseudoRecord      parse_opt_pseudo_record( const ResponseSectionEntry & );
 }
 
 #endif
