@@ -1,6 +1,8 @@
 add_library( libdns
   utils.cpp
   wireformat.cpp
+  udpv4client.cpp
+  tcpv4client.cpp
   domainname.cpp
   dns.cpp
   rdata_base.cpp
