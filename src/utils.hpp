@@ -59,6 +59,8 @@ public:
 
 std::string get_error_message( const std::string &msg, int error_number );
 
+std::string toLower( const std::string &str );
+std::string toUpper( const std::string &str );
 
 in_addr convertAddressStringToBinary( const std::string &str );
 std::string convertAddressBinaryToString( in_addr bin );

@@ -227,66 +227,50 @@ namespace dns
         return os;
     }
 
-    std::string TypeCodeToString( Type t )
-    {
-        std::string res;
 
-        switch ( t ) {
-        case TYPE_A:
-            res = "A";
-            break;
-        case TYPE_NS:
-            res = "NS";
-            break;
-        case TYPE_CNAME:
-            res = "CNAME";
-            break;
-        case TYPE_NAPTR:
-            res = "NAPTR";
-            break;
-        case TYPE_DNAME:
-            res = "DNAME";
-            break;
-        case TYPE_MX:
-            res = "MX";
-            break;
-        case TYPE_TXT:
-            res = "TXT";
-            break;
-        case TYPE_SOA:
-            res = "SOA";
-            break;
-        case TYPE_KEY:
-            res = "KEY";
-            break;
-        case TYPE_AAAA:
-            res = "AAAA";
-            break;
-        case TYPE_OPT:
-            res = "OPT";
-            break;
-        case TYPE_DNSKEY:
-            res = "DNSKEY";
-            break;
-        case TYPE_TSIG:
-            res = "TSIG";
-            break;
-        case TYPE_TKEY:
-            res = "TKEY";
-            break;
-        case TYPE_IXFR:
-            res = "IXFR";
-            break;
-        case TYPE_AXFR:
-            res = "AXFR";
-            break;
-        case TYPE_ANY:
-            res = "ANY";
-            break;
-        default:
-            res = boost::lexical_cast<std::string>( t );
-        }
-        return res;
+    struct TypeToString {
+	Type type;
+	const char *name;
+    };
+
+
+    const TypeToString typeToString[] = {
+	{ TYPE_A,      "A" },
+	{ TYPE_NS,     "NS" },
+	{ TYPE_CNAME,  "CNAME" },
+	{ TYPE_NAPTR,  "NAPTR" },
+	{ TYPE_DNAME,  "DNAME" },
+	{ TYPE_MX,     "MX" },
+	{ TYPE_TXT,    "TXT" },
+	{ TYPE_SOA,    "SOA" },
+	{ TYPE_KEY,    "KEY" },
+	{ TYPE_AAAA,   "AAAA" },
+	{ TYPE_OPT,    "OPT" },
+	{ TYPE_DNSKEY, "DNSKEY" },
+	{ TYPE_TSIG,   "TSIG" },
+	{ TYPE_TKEY,   "TKEY" },
+	{ TYPE_IXFR,   "IXFR" },
+	{ TYPE_AXFR,   "AXFR" },
+	{ TYPE_ANY,    "ANY" },
+    };
+
+    Type StringToTypeCode( const std::string &str )
+    {
+	const std::string type_str = toUpper( str );
+	for ( auto t2s : typeToString ) {
+	    if ( type_str == t2s.name )
+		return t2s.type;
+	}
+	throw std::runtime_error( "unknown type " + str );
+    }
+
+    std::string TypeCodeToString( Type type )
+    {
+	for ( auto t2s : typeToString ) {
+	    if ( type == t2s.type )
+		return t2s.name;
+	}
+	return boost::lexical_cast<std::string>( type );
     }
 
     std::string ResponseCodeToString( uint8_t rcode )

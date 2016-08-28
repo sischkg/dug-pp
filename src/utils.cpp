@@ -1,4 +1,6 @@
 #include "utils.hpp"
+#include <cctype>
+#include <algorithm>
 #include <boost/scoped_array.hpp>
 #include <cstdio>
 #include <cstring>
@@ -8,6 +10,23 @@
 #include <sstream>
 
 const int ERROR_BUFFER_SIZE = 256;
+
+std::string toLower( const std::string &str )
+{
+    std::string lower = str;
+    std::transform( lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    return lower;
+}
+
+std::string toUpper( const std::string &str )
+{
+    std::string upper = str;
+    std::transform( upper.begin(), upper.end(), upper.begin(), ::toupper);
+
+    return upper;
+}
+
 
 std::string get_error_message( const std::string &msg, int error_number )
 {
