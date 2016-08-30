@@ -31,11 +31,13 @@ namespace dns
         {
             return labels;
         }
-
+	std::deque<std::string> getLowerCaseLabels() const;
+	
         Domainname  operator+( const Domainname & ) const;
         Domainname &operator+=( const Domainname & );
         void        addSubdomain( const std::string & );
         void        addSuffix( const std::string & );
+	bool        isInternalName( const Domainname & ) const;
 
         static const uint8_t *parsePacket( Domainname &   ref_domainname,
                                            const uint8_t *packet,

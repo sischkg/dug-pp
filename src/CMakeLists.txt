@@ -21,3 +21,7 @@ add_library( libdns
   rdata_tsig.cpp
   rdata_txt.cpp
   )
+
+add_executable( dugpp        dugpp.cpp )
+target_link_libraries( dugpp boost_program_options libdns crypto)
+

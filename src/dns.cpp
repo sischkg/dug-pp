@@ -50,26 +50,27 @@ namespace dns
         message.pushBuffer( reinterpret_cast<const uint8_t *>( &header ),
                             reinterpret_cast<const uint8_t *>( &header ) + sizeof( header ) );
 
-        for ( auto q = info.question_section.begin(); q != info.question_section.end(); ++q ) {
-            generateQuestionSection( *q, message );
-        }
-        for ( auto q = info.answer_section.begin(); q != info.answer_section.end(); ++q ) {
-            generateResponseSection( *q, message );
-        }
-        for ( auto q = info.authority_section.begin(); q != info.authority_section.end(); ++q ) {
-            generateResponseSection( *q, message );
-        }
-        for ( auto q = additional.begin(); q != additional.end(); ++q ) {
-            generateResponseSection( *q, message );
-        }
-	info.opt_pseudo_rr.outputWireFormat( message );
+        for ( auto &query : info.question_section )
+            generateQuestionSection( query, message );
+ 
+        for ( auto &answer : info.answer_section )
+            generateResponseSection( answer, message );
+	
+        for ( auto &auth : info.authority_section )
+            generateResponseSection( auth, message );
+
+        for ( auto &add : additional )
+            generateResponseSection( add, message );
+
+	if ( info.edns0 )
+	    info.opt_pseudo_rr.outputWireFormat( message );
     }
 
     MessageInfo parseDNSMessage( const uint8_t *begin, const uint8_t *end )
     {
         const uint8_t *packet = begin;
 
-        MessageInfo               packet_info;
+        MessageInfo              packet_info;
         const PacketHeaderField *header = reinterpret_cast<const PacketHeaderField *>( begin );
 
         packet_info.id                   = ntohs( header->id );
@@ -212,21 +213,39 @@ namespace dns
         return ResponseSectionEntryPair( sec, pos );
     }
 
-    std::ostream &printHader( std::ostream &os, const MessageInfo &packet )
+    std::ostream &printHeader( std::ostream &os, const MessageInfo &message )
     {
-        os << "ID:                   " << packet.id                   << std::endl
-           << "Query/Response:       " << ( packet.query_response == 0 ? "Query" : "Response" ) << std::endl
-           << "OpCode:               " << packet.opcode               << std::endl
-           << "Authoritative Answer: " << packet.authoritative_answer << std::endl
-           << "Truncation:           " << packet.truncation           << std::endl
-           << "Recursion Desired:    " << packet.recursion_desired    << std::endl
-           << "Recursion Available:  " << packet.recursion_available  << std::endl
-           << "Checking Disabled:    " << packet.checking_disabled    << std::endl
-           << "Response Code:        " << ResponseCodeToString( packet.response_code ) << std::endl;
+        os << "ID:                   " << message.id                   << std::endl
+           << "Query/Response:       " << ( message.query_response == 0 ? "Query" : "Response" ) << std::endl
+           << "OpCode:               " << static_cast<uint16_t>( message.opcode )                << std::endl
+           << "Authoritative Answer: " << message.authoritative_answer << std::endl
+           << "Truncation:           " << message.truncation           << std::endl
+           << "Recursion Desired:    " << message.recursion_desired    << std::endl
+           << "Recursion Available:  " << message.recursion_available  << std::endl
+           << "Checking Disabled:    " << message.checking_disabled    << std::endl
+           << "Response Code:        " << ResponseCodeToString( message.response_code ) << std::endl;
 
         return os;
     }
 
+    std::ostream &operator<<( std::ostream &os, const MessageInfo &message )
+    {
+	printHeader( os, message );
+
+        for ( auto &entry : message.question_section )
+            os << "Query: " << entry.domainname << " " << TypeCodeToString( entry.type ) << "  ?" << std::endl;
+        for ( auto &entry : message.answer_section )
+            std::cout << "Answer: " << entry.domainname << " " << entry.ttl << " " << TypeCodeToString( entry.type )
+                      << " " << entry.rdata->toString() << std::endl;
+	for ( auto &entry : message.authority_section )
+	    std::cout << "Authority: " << entry.ttl << " " << TypeCodeToString( entry.type ) << " "
+                      << entry.rdata->toString() << std::endl;
+        for ( auto &entry : message.additional_infomation_section )
+            std::cout << "Additional: " << entry.domainname << " " << entry.ttl << " " << TypeCodeToString( entry.type )
+                      << " " << entry.rdata->toString() << std::endl;
+
+        return os;
+    }
 
     struct TypeToString {
 	Type type;

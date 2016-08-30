@@ -63,8 +63,8 @@ namespace dns
 
     void generateDNSMessage( const MessageInfo &message, WireFormat & );
     MessageInfo parseDNSMessage( const uint8_t *begin, const uint8_t *end );
-    std::ostream &operator<<( std::ostream &os, const MessageInfo &packet_info );
-    std::ostream &printHeader( std::ostream &os, const MessageInfo &packet );
+    std::ostream &operator<<( std::ostream &os, const MessageInfo &message );
+    std::ostream &printHeader( std::ostream &os, const MessageInfo &message );
     std::string TypeCodeToString( Type t );
     Type StringToTypeCode( const std::string & );
     std::string ResponseCodeToString( uint8_t rcode );

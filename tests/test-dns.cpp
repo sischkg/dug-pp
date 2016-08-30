@@ -59,6 +59,7 @@ TEST_F( TypeToString, convert_a_to_type_a )
 }
 
 
+
 int main( int argc, char **argv )
 {
     ::testing::InitGoogleTest( &argc, argv );

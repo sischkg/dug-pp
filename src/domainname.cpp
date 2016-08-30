@@ -1,6 +1,7 @@
 #include "domainname.hpp"
 #include "dns_base.hpp"
 #include "cstring"
+#include <iostream>
 
 namespace dns
 {
@@ -104,6 +105,33 @@ namespace dns
 	return wireformat.get();
     }
 
+    std::deque<std::string> Domainname::getLowerCaseLabels() const
+    {
+	std::deque<std::string> lower_labels;
+	for ( auto &label : labels )
+	    lower_labels.push_back( ::toLower( label ) );
+	return lower_labels;
+    }
+    
+    bool Domainname::isInternalName( const Domainname &ns_name ) const
+    {
+	std::deque<std::string> parent = getLowerCaseLabels();
+	std::deque<std::string> ns     = ns_name.getLowerCaseLabels();
+
+	if ( parent.size() >= ns.size() )
+	    return false;
+
+	auto p = parent.rbegin();
+	auto n = ns.rbegin();
+	for ( ; p != parent.rend() ; p++, n++  ) {
+	    if ( *p != *n )
+		return false;
+	}
+
+	return true;
+    }
+	
+    
     const uint8_t *Domainname::parsePacket( Domainname &   ref_domainname,
                                             const uint8_t *packet,
                                             const uint8_t *begin,
