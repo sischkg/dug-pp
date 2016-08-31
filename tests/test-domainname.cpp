@@ -4,6 +4,32 @@
 #include <iostream>
 
 
+class ParseDomainname : public ::testing::Test
+{};
+
+TEST_F( ParseDomainname, parse )
+{
+    dns::Domainname name( "a.dns.jp" );
+    const std::deque<std::string> &labels = name.getLabels();
+    EXPECT_EQ( "a",   labels[0] ) << "labels[0] of a.dns.jp is 'a'";
+    EXPECT_EQ( "dns", labels[1] ) << "labels[1] of a.dns.jp is 'dns'";
+    EXPECT_EQ( "jp",  labels[2] ) << "labels[2] of a.dns.jp is 'jp'";
+}
+
+
+class LowerCase : public ::testing::Test
+{};
+
+TEST_F( LowerCase, lower_case )
+{
+    dns::Domainname name( "a.DNS.JP" );
+    const std::deque<std::string> &labels = name.getLowerCaseLabels();
+    EXPECT_EQ( "a",   labels[0] ) << "labels[0] of a.dns.jp is 'a'";
+    EXPECT_EQ( "dns", labels[1] ) << "labels[1] of a.DNS.JP is 'dns'";
+    EXPECT_EQ( "jp",  labels[2] ) << "labels[2] of a.DNS.JP is 'jp'";
+}
+
+
 class TestIsInternalName : public ::testing::Test
 {
 public:
