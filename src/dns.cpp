@@ -330,4 +330,54 @@ namespace dns
         return res;
     }
 
+    ResponseType classifyResponse( const MessageInfo &response )
+    {
+	if ( response.question_section.size() != 1 )
+	    std::logic_error( "qd_count must be 1" );
+	const QuestionSectionEntry &question = response.question_section[0];
+	
+	if ( response.response_code == NXDOMAIN ) {
+	    return RESPONSE_NXDOMAIN;
+	}
+	if ( response.response_code == NO_ERROR ) {
+	    bool is_cname   = false;
+	    bool is_success = false;
+	    for( auto &answer : response.answer_section ) {
+		if ( question.domainname == answer.domainname &&
+		     question.type       == answer.type &&
+		     question.klass      == answer.klass ) {
+		    is_success = true;
+		}
+		if ( question.domainname == answer.domainname &&
+		     TYPE_CNAME          == answer.type &&
+		     question.klass      == answer.klass ) {
+		    is_cname = true;
+		}
+	    }
+	    if ( is_cname )
+		return RESPONSE_CNAME;
+	    if ( is_success )
+		return RESPONSE_SUCCESS;
+
+	    if ( response.answer_section.size() == 0 ) {
+		bool is_referral = false;
+		for( auto &auth : response.authority_section ) {
+		    if ( auth.type  == TYPE_NS &&
+			 auth.klass == question.klass ) {
+			if ( auth.domainname == question.domainname ||
+			     auth.domainname.isInternalName( question.domainname ) ) {
+			    is_referral = true;
+			}
+		    }
+		}
+		if ( is_referral )
+		    return RESPONSE_REFERRAL;
+		else
+		    return RESPONSE_NODATA;
+	    }
+	}
+
+	throw std::runtime_error( "cannot classify response message" );
+    }
+    
 }

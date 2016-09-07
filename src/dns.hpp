@@ -15,16 +15,24 @@ namespace dns
 {
     struct QuestionSectionEntry {
         Domainname domainname;
-        uint16_t   type       = 0;
-        uint16_t   klass      = 0;
+        uint16_t   type;
+        uint16_t   klass;
+
+	QuestionSectionEntry( const Domainname &name = Domainname(), Type t = 0, Class c = 0 )
+	    : domainname( name ), type( t ), klass( c )
+	{}
     };
 
     struct ResponseSectionEntry {
         Domainname domainname;
-        uint16_t   type  = 0;
-        uint16_t   klass = 0;
-        uint32_t   ttl   = 0;
+        uint16_t   type;
+        uint16_t   klass;
+        uint32_t   ttl;
         RDataPtr   rdata;
+
+    	ResponseSectionEntry( const Domainname &name = Domainname(), Type t = 0, Class c = 0, uint32_t tt = 0, RDataPtr p = RDataPtr() )
+	    : domainname( name ), type( t ), klass( c ), ttl( tt ), rdata( p )
+	{}
     };
 
     struct MessageInfo {
@@ -61,6 +69,7 @@ namespace dns
         }
     };
 
+     
     void generateDNSMessage( const MessageInfo &message, WireFormat & );
     MessageInfo parseDNSMessage( const uint8_t *begin, const uint8_t *end );
     std::ostream &operator<<( std::ostream &os, const MessageInfo &message );
@@ -68,7 +77,9 @@ namespace dns
     std::string TypeCodeToString( Type t );
     Type StringToTypeCode( const std::string & );
     std::string ResponseCodeToString( uint8_t rcode );
+    ResponseType classifyResponse( const MessageInfo & );
 
+    
     void generateQuestionSection( const QuestionSectionEntry &q, WireFormat &message );
     void generateResponseSection( const ResponseSectionEntry &r, WireFormat &message );
 

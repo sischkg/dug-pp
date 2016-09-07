@@ -57,6 +57,13 @@ namespace dns
     const ResponseCode BADKEY         = 17;
     const ResponseCode BADTIME        = 18;
 
+    typedef uint8_t ResponseType;
+    const ResponseType RESPONSE_SUCCESS  = 0;
+    const ResponseType RESPONSE_NXDOMAIN = 1;
+    const ResponseType RESPONSE_NODATA   = 2;
+    const ResponseType RESPONSE_CNAME    = 3;
+    const ResponseType RESPONSE_REFERRAL = 4;
+    
     class ResourceData;
     typedef std::shared_ptr<ResourceData> ResourceDataPtr;
 

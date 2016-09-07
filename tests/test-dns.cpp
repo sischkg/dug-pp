@@ -59,6 +59,146 @@ TEST_F( TypeToString, convert_a_to_type_a )
 }
 
 
+class ClassifyResponseSuccess : public ::testing::Test
+{   
+public:
+    dns::MessageInfo createHeaderInfo( bool aa, uint8_t rcode )
+    {
+	dns::MessageInfo message;
+    
+	message.id                   = 1;
+	message.query_response       = 1;
+	message.opcode               = 0;
+	message.authoritative_answer = aa;
+	message.truncation           = false;
+	message.recursion_desired    = false;
+	message.recursion_available  = false;
+	message.checking_disabled    = true;
+	message.authentic_data       = 0;
+	message.response_code        = rcode;
+
+	return message;
+    }
+};
+
+
+TEST_F( ClassifyResponseSuccess, success_response )
+{
+    dns::MessageInfo response = createHeaderInfo( true, dns::NO_ERROR );
+    response.edns0 = false;
+    response.tsig  = false;
+
+    dns::QuestionSectionEntry question { "a.dns.jp", dns::TYPE_A, dns::CLASS_IN };
+    response.question_section.push_back( question );
+
+    dns::ResponseSectionEntry answer { "a.dns.jp", dns::TYPE_A, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordA( "192.168.0.1" ) ) };
+    response.answer_section.push_back( answer );
+
+    dns::ResponseSectionEntry ns1 { "dns.jp", dns::TYPE_NS, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordNS( "nsa.dns.jp" ) ) };
+    dns::ResponseSectionEntry ns2 { "dns.jp", dns::TYPE_NS, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordNS( "nsb.dns.jp" ) ) };
+    response.authority_section.push_back( ns1 );
+    response.authority_section.push_back( ns2 );
+
+    dns::ResponseSectionEntry additional1 { "nsa.dns.jp", dns::TYPE_A, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordA( "192.168.1.1" ) ) };
+    dns::ResponseSectionEntry additional2 { "nsb.dns.jp", dns::TYPE_A, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordA( "192.168.1.2" ) ) };
+    response.additional_infomation_section.push_back( additional1 );
+    response.additional_infomation_section.push_back( additional2 );
+
+    EXPECT_EQ( dns::RESPONSE_SUCCESS, dns::classifyResponse( response ) ) << "response type SUCCESS";
+}
+
+
+TEST_F( ClassifyResponseSuccess, cname_response )
+{
+    dns::MessageInfo response = createHeaderInfo( true, dns::NO_ERROR );
+    response.edns0 = false;
+    response.tsig  = false;
+
+    dns::QuestionSectionEntry question { "www.dns.jp", dns::TYPE_A, dns::CLASS_IN };
+    response.question_section.push_back( question );
+
+    dns::ResponseSectionEntry answer1  { "www.dns.jp", dns::TYPE_CNAME, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordCNAME( "a.dns.jp" ) ) };
+    dns::ResponseSectionEntry answer2  { "a.dns.jp",   dns::TYPE_A,     dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordA( "192.168.0.1" ) ) };
+    response.answer_section.push_back( answer1 );
+    response.answer_section.push_back( answer2 );
+
+    dns::ResponseSectionEntry ns1 { "dns.jp", dns::TYPE_NS, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordNS( "nsa.dns.jp" ) ) };
+    dns::ResponseSectionEntry ns2 { "dns.jp", dns::TYPE_NS, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordNS( "nsb.dns.jp" ) ) };
+    response.authority_section.push_back( ns1 );
+    response.authority_section.push_back( ns2 );
+
+    dns::ResponseSectionEntry additional1 { "nsa.dns.jp", dns::TYPE_A, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordA( "192.168.1.1" ) ) };
+    dns::ResponseSectionEntry additional2 { "nsb.dns.jp", dns::TYPE_A, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordA( "192.168.1.2" ) ) };
+    response.additional_infomation_section.push_back( additional1 );
+    response.additional_infomation_section.push_back( additional2 );
+
+    EXPECT_EQ( dns::RESPONSE_CNAME, dns::classifyResponse( response ) ) << "response type CNAME";
+}
+
+
+TEST_F( ClassifyResponseSuccess, referral_response )
+{
+    dns::MessageInfo response = createHeaderInfo( true, dns::NO_ERROR );
+    response.edns0 = false;
+    response.tsig  = false;
+
+    dns::QuestionSectionEntry question { "a.dns.jp", dns::TYPE_A, dns::CLASS_IN };
+    response.question_section.push_back( question );
+
+    dns::ResponseSectionEntry ns1 { "dns.jp", dns::TYPE_NS, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordNS( "nsa.dns.jp" ) ) };
+    dns::ResponseSectionEntry ns2 { "dns.jp", dns::TYPE_NS, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordNS( "nsb.dns.jp" ) ) };
+    response.authority_section.push_back( ns1 );
+    response.authority_section.push_back( ns2 );
+
+    dns::ResponseSectionEntry additional1 { "nsa.dns.jp", dns::TYPE_A, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordA( "192.168.1.1" ) ) };
+    dns::ResponseSectionEntry additional2 { "nsb.dns.jp", dns::TYPE_A, dns::CLASS_IN, 3600, dns::RDataPtr( new dns::RecordA( "192.168.1.2" ) ) };
+    response.additional_infomation_section.push_back( additional1 );
+    response.additional_infomation_section.push_back( additional2 );
+
+    EXPECT_EQ( dns::RESPONSE_REFERRAL, dns::classifyResponse( response ) ) << "response type REFERRAL";
+}
+
+
+TEST_F( ClassifyResponseSuccess, nodata_response )
+{
+    dns::MessageInfo response = createHeaderInfo( true, dns::NO_ERROR );
+    response.edns0 = false;
+    response.tsig  = false;
+
+    dns::QuestionSectionEntry question { "a.dns.jp", dns::TYPE_A, dns::CLASS_IN };
+    response.question_section.push_back( question );
+
+    dns::ResponseSectionEntry soa {
+	"dns.jp",
+	    dns::TYPE_SOA,
+	    dns::CLASS_IN, 3600,
+	    dns::RDataPtr( new dns::RecordSOA( "z.dns.jp", "hostmaster.dns.jp", 1, 3600, 2600, 36000, 300 ) ),
+	    };
+    response.authority_section.push_back( soa );
+
+    EXPECT_EQ( dns::RESPONSE_NODATA, dns::classifyResponse( response ) ) << "response type NODATA";
+}
+
+TEST_F( ClassifyResponseSuccess, nxdomain_response )
+{
+    dns::MessageInfo response = createHeaderInfo( true, dns::NXDOMAIN );
+    response.edns0 = false;
+    response.tsig  = false;
+
+    dns::QuestionSectionEntry question { "a.dns.jp", dns::TYPE_A, dns::CLASS_IN };
+    response.question_section.push_back( question );
+
+    dns::ResponseSectionEntry soa {
+	"dns.jp",
+	    dns::TYPE_SOA,
+	    dns::CLASS_IN, 3600,
+	    dns::RDataPtr( new dns::RecordSOA( "z.dns.jp", "hostmaster.dns.jp", 1, 3600, 2600, 36000, 300 ) ),
+	    };
+    response.authority_section.push_back( soa );
+
+    EXPECT_EQ( dns::RESPONSE_NXDOMAIN, dns::classifyResponse( response ) ) << "response type NXDOMAIN";
+}
+
 
 int main( int argc, char **argv )
 {
