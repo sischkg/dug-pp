@@ -25,3 +25,6 @@ add_library( libdns
 add_executable( dugpp        dugpp.cpp )
 target_link_libraries( dugpp boost_program_options libdns crypto)
 
+add_executable( dugpp-trace  dugpp-trace.cpp )
+target_link_libraries( dugpp-trace boost_program_options libdns crypto)
+

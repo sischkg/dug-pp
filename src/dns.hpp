@@ -78,7 +78,7 @@ namespace dns
     Type StringToTypeCode( const std::string & );
     std::string ResponseCodeToString( uint8_t rcode );
     ResponseType classifyResponse( const MessageInfo & );
-
+    std::string ResponseTypeString( ResponseType );
     
     void generateQuestionSection( const QuestionSectionEntry &q, WireFormat &message );
     void generateResponseSection( const ResponseSectionEntry &r, WireFormat &message );

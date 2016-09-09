@@ -5,19 +5,23 @@
 
 namespace po = boost::program_options;
 
+const char *DEFAULT_ROOT_SERVER = "198.41.0.4"; // a.root-servers.net
+
+
+void iterate_query( const dns::Domainname &qname, dns::Type type, dns::ResponseSectionEntry &result )
+{
+
+}
+
+
 int main( int argc, char **argv )
 {
-    std::string target_server, arg_qname, arg_qtype;
-    bool is_recursive = false;
+    std::string arg_qname, arg_qtype, arg_root_server;
 
     po::options_description desc( "DNS Client" );
     desc.add_options()
 	( "help,h",
 	  "print this message" )
-
-        ( "server,s",
-          po::value<std::string>( &target_server ),
-          "target dns server address" )
 
 	( "name,n",
 	  po::value<std::string>( &arg_qname ),
@@ -27,8 +31,9 @@ int main( int argc, char **argv )
 	  po::value<std::string>( &arg_qtype ),
 	  "qtype" )
 
-	( "recursive,r",
-	  "recursive query" );
+	( "root,r",
+	  po::value<std::string>( &arg_root_server )->default_value( DEFAULT_ROOT_SERVER ),
+	  "root-server IP address" );
 
     po::variables_map vm;
     po::store( po::parse_command_line( argc, argv, desc ), vm );
@@ -38,8 +43,7 @@ int main( int argc, char **argv )
         std::cerr << desc << "\n";
         return 0;
     }
-    if ( vm.count( "recursive" ) )
-	is_recursive = true;
+
 
     dns::MessageInfo message_info;
 
@@ -54,7 +58,7 @@ int main( int argc, char **argv )
     message_info.query_response       = 0;
     message_info.authoritative_answer = 0;
     message_info.truncation           = 0;
-    message_info.recursion_desired    = is_recursive ? 1 : 0;
+    message_info.recursion_desired    = 0;
     message_info.recursion_available  = 0;
     message_info.zero_field           = 0;
     message_info.authentic_data       = 0;
@@ -68,7 +72,7 @@ int main( int argc, char **argv )
     dns::generateDNSMessage( message_info, query_message );
 
     ClientParameters udp_param;
-    udp_param.address = target_server;
+    udp_param.address = arg_root_server;
     udp_param.port    = 53;
     udpv4::Client udp( udp_param );
     udp.sendPacket( query_message );

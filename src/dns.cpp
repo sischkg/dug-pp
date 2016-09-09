@@ -379,5 +379,23 @@ namespace dns
 
 	throw std::runtime_error( "cannot classify response message" );
     }
-    
+
+
+    std::string ResponseTypeString( ResponseType type )
+    {
+	switch ( type ) {
+	case RESPONSE_SUCCESS:
+	    return "SUCCESS";
+	case RESPONSE_NXDOMAIN:
+	    return "NXDOMAIN";
+	case RESPONSE_CNAME:
+	    return "CNAME";
+	case RESPONSE_REFERRAL:
+	    return "REFERRAL";
+	case RESPONSE_NODATA:
+	    return "NODATA";
+	}
+	return "UNKNOWN";
+    }
+
 }

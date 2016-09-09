@@ -12,10 +12,11 @@ namespace dns
         {
         }
 
-        virtual std::string toString() const                       = 0;
-        virtual void outputWireFormat( WireFormat &message ) const = 0;
-        virtual Type     type() const                              = 0;
-        virtual uint16_t size() const                              = 0;
+        virtual std::string toString() const                              = 0;
+        virtual void        outputWireFormat( WireFormat &message ) const = 0;
+        virtual Type        type() const                                  = 0;
+        virtual uint16_t    size() const                                  = 0;
+        virtual RData      *clone() const                                 = 0;
     };
 
     typedef std::shared_ptr<RData> RDataPtr;
@@ -42,6 +43,10 @@ namespace dns
         {
             return data.size();
         }
+	virtual RecordRaw* clone() const
+	{
+	    return new RecordRaw( rrtype, data );
+	}
     };
 
 }

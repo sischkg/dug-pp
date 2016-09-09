@@ -24,6 +24,10 @@ namespace dns
         {
             return sizeof( sin_addr );
         }
+	virtual RecordA* clone() const
+	{
+	    return new RecordA( sin_addr );
+	}
         static RDataPtr parse( const uint8_t *begin, const uint8_t *end );
     };
 }
